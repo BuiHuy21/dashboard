@@ -1,0 +1,38 @@
+.ant-btn-primary {
+  background-color: #e90;
+  border-color: #e90;
+}
+a {
+  color: #e90;
+}
+.ant-select-focused .ant-select-selection,
+.ant-select-selection:focus,
+.ant-select-selection:active {
+  border-color: #e90;
+  box-shadow: 0 0 0 2px rgb(232 198 80 / 20%);
+}
+.ant-input:focus {
+  border-color: #e90;
+  box-shadow: 0 0 0 2px rgb(232 198 80 / 20%);
+}
+.ant-input:hover {
+  border-color: #e90;
+}
+.ant-select-selection:hover {
+  border-color: #e90;
+}
+.ant-calendar-picker:hover .ant-calendar-picker-input:not(.ant-input-disabled) {
+  border-color: #e90;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  color: #fff;
+  background-color: #e90;
+  border-color: #e90;
+  opacity: 0.85;
+}
+a:hover {
+  color: #e90;
+  opacity: 0.85;
+}

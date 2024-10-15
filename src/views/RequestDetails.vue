@@ -9,7 +9,9 @@
     >
       <template #title>
         <a-breadcrumb>
-          <a-breadcrumb-item href="/">Trang chủ </a-breadcrumb-item>
+          <a-breadcrumb-item>
+            <router-link to="/">Trang chủ</router-link>
+          </a-breadcrumb-item>
           <a-breadcrumb-item>Xử lý đối soát</a-breadcrumb-item>
           <a-breadcrumb-item>Chi tiết yêu cầu</a-breadcrumb-item>
         </a-breadcrumb>
@@ -21,47 +23,51 @@
         <a-row :gutter="32" style="margin-bottom: 20px">
           <a-col :span="4">
             <p>Nhập mã yêu cầu</p>
-            <a-input placeholder="Vui lòng nhập mã yêu cầu" />
+            <a-input
+              v-model="itemDetail.requestCode"
+              placeholder="Vui lòng nhập mã yêu cầu"
+              disabled
+            />
           </a-col>
           <a-col :span="4">
             <p>Loại yêu cầu xử lý</p>
-            <a-input placeholder="Người tạo" />
+            <a-textarea v-model="itemDetail.requestType" auto-size disabled />
           </a-col>
           <a-col :span="4">
             <p>Dịch vụ</p>
-            <a-input placeholder="Người tạo" />
+            <a-input v-model="itemDetail.service" key="" disabled />
           </a-col>
           <a-col :span="4">
             <p>Loại giao dịch</p>
-            <a-input placeholder="Người tạo" />
+            <a-input v-model="itemDetail.transactionType" disabled />
           </a-col>
         </a-row>
         <a-row :gutter="32" style="margin-bottom: 20px">
           <a-col :span="4">
             <p>Lĩnh vực kinh doanh</p>
-            <a-input placeholder="Người tạo" />
+            <a-input v-model="itemDetail.businessField" key="" disabled />
           </a-col>
           <a-col :span="4">
             <p>Trạng thái yêu cầu</p>
-            <a-input placeholder="Người tạo" />
+            <a-input v-model="itemDetail.requestStatus" disabled />
           </a-col>
         </a-row>
         <a-row :gutter="32" style="margin-bottom: 20px">
           <a-col :span="4">
             <p>Người tạo</p>
-            <a-input placeholder="Người tạo" />
+            <a-input v-model="itemDetail.requester" disabled />
           </a-col>
           <a-col :span="4">
             <p>Ngày tạo</p>
-            <a-input placeholder="Ngày tạo" />
+            <a-input v-model="itemDetail.requestTime" disabled />
           </a-col>
           <a-col :span="4">
             <p>Người duyệt</p>
-            <a-input placeholder="Người duyệt" />
+            <a-input disabled />
           </a-col>
           <a-col :span="4">
             <p>Ngày duyệt</p>
-            <a-input placeholder="Ngày duyệt" />
+            <a-input disabled />
           </a-col>
         </a-row>
         <a-row>
@@ -69,18 +75,50 @@
           <a-col :span="5"></a-col>
           <a-col :span="5"></a-col>
           <a-col :span="5"></a-col>
-          <template v-if="browsingStatus === 'waiting'">
+          <template v-if="itemDetail.requestStatus === 'Chờ duyệt'">
             <a-col :span="2">
-              <a-button type="primary" style="width: 90%">Từ chối </a-button>
+              <a-modal
+                v-model="visibleRefuse"
+                okText="Xác nhận"
+                cancelText="Hủy"
+                title="Thông báo từ hệ thống"
+                @ok="handleOkRefuse"
+              >
+                <p>*Lý do</p>
+                <a-input placeholder="Nhập lý do" />
+                <p>*Mật khẩu</p>
+                <a-input placeholder="Nhập mật khẩu" />
+              </a-modal>
+              <a-button
+                type="primary"
+                style="width: 90%"
+                @click="showModalRefuse"
+                >Từ chối
+              </a-button>
             </a-col>
             <a-col :span="2">
-              <a-button type="primary" style="width: 90%"> Duyệt </a-button>
+              <a-modal
+                v-model="visible"
+                okText="Xác nhận"
+                cancelText="Hủy"
+                title="Thông báo từ hệ thống"
+                @ok="handleOk"
+              >
+                <p>*Mật khẩu</p>
+                <a-input placeholder="Nhập mật khẩu" />
+              </a-modal>
+              <a-button type="primary" style="width: 90%" @click="showModal">
+                Duyệt
+              </a-button>
             </a-col>
           </template>
         </a-row>
         <a-row>
           <template
-            v-if="browsingStatus === 'refuse' || browsingStatus === 'approved'"
+            v-if="
+              itemDetail.requestStatus === 'Từ chối' ||
+              itemDetail.requestStatus === 'Đã duyệt'
+            "
           >
             <a-table
               :columns="columns1"
@@ -110,7 +148,7 @@
       <template #title>
         <span>Danh sách giao dịch</span>
       </template>
-      <template v-if="browsingStatus === 'approved'">
+      <template v-if="itemDetail.requestStatus === 'Đã duyệt'">
         <a-row type="flex">
           <a-select
             default-value="Trạng thái"
@@ -141,7 +179,7 @@
       bordered
     >
       <template slot="requestCode" slot-scope="text, record">
-        <a @click="alertRequestCode(text, record)"> {{ text }} </a>
+        <a @click="alertRequestCode(record.key)"> {{ text }} </a>
       </template>
       <template slot="operation" slot-scope="text">
         <a @click="alertOperation(text)"> {{ text }} </a>
@@ -280,22 +318,73 @@ const data1 = [
     endTime: "2014-12-28 23:12:00",
   },
 ];
+
 export default {
   data() {
     return {
       activeKey: ["1"],
       data,
       columns,
+      visible: false,
+      visibleRefuse: false,
       data1,
       columns1,
-      //   browsingStatus: "approved",
-      //   browsingStatus: "waiting",
-      browsingStatus: "refuse",
+      itemDetail: {
+        key: "",
+        requestCode: "",
+        requestType: "",
+        service: "",
+        transactionType: "",
+        businessField: "",
+        requester: "",
+        requestTime: "",
+        reviewer: "",
+        browsingTime: "",
+        requestStatus: "",
+      },
     };
   },
+
+  computed: {
+    id() {
+      return this.$route.params.id;
+    },
+  },
   watch: {
+    id: {
+      immediate: true,
+      handler(newId) {
+        this.loadItem(newId);
+      },
+    },
     activeKey(key) {
       console.log(key);
+    },
+  },
+  methods: {
+    loadItem(id) {
+      const item = this.$store.getters.dataColumns.find(
+        (item) => item.key === id
+      );
+      if (item) {
+        this.itemDetail = { ...item };
+      } else {
+        console.error("Không tìm thấy", id);
+      }
+    },
+    showModal() {
+      this.visible = true;
+    },
+    handleOk(e) {
+      console.log(e);
+      this.visible = false;
+    },
+    showModalRefuse() {
+      this.visibleRefuse = true;
+    },
+    handleOkRefuse(e) {
+      console.log(e);
+      this.visibleRefuse = false;
     },
   },
 };

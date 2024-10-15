@@ -1,4 +1,3 @@
-import HomePage from "@/views/HomePage.vue";
 import RequestDetails from "@/views/RequestDetails.vue";
 import RequirementList from "@/views/RequirementList.vue";
 import Vue from "vue";
@@ -9,16 +8,11 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    name: "Home",
-    component: HomePage,
-  },
-  {
-    path: "/requirement-list",
     name: "RequirementList",
     component: RequirementList,
   },
   {
-    path: "/request-details",
+    path: "/request-details/:id",
     name: "RequestDetails",
     component: RequestDetails,
   },

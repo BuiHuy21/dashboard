@@ -9,7 +9,9 @@
     >
       <template #title>
         <a-breadcrumb>
-          <a-breadcrumb-item href="/">Trang chủ </a-breadcrumb-item>
+          <a-breadcrumb-item>
+            <router-link to="/">Trang chủ</router-link>
+          </a-breadcrumb-item>
           <a-breadcrumb-item>Xử lý đối soát</a-breadcrumb-item>
           <a-breadcrumb-item>Danh sách yêu cầu</a-breadcrumb-item>
         </a-breadcrumb>
@@ -33,16 +35,16 @@
               <a-select-option value="d" disabled>
                 -- Tất cả --
               </a-select-option>
-              <a-select-option value="a">
+              <a-select-option value="0">
                 Cập nhập trạng thái GD
               </a-select-option>
-              <a-select-option value="b">
+              <a-select-option value="1">
                 Cập nhập trạng thái GD,hạch toán
               </a-select-option>
-              <a-select-option value="c">
+              <a-select-option value="2">
                 Cập nhập trạng thái GD,thực hiện hoàn toàn
               </a-select-option>
-              <a-select-option value="c"> Insert giao dịch</a-select-option>
+              <a-select-option value="3"> Insert giao dịch</a-select-option>
             </a-select>
           </a-col>
           <a-col :span="5">
@@ -153,219 +155,47 @@
     </a-page-header>
 
     <a-table
-      :columns="columns"
-      :data-source="data"
-      :pagination="{ pageSize: 5 }"
+      :columns="colums"
+      :data-source="dataColumns"
+      :pagination="{ pageSize: 8 }"
       style="background: white"
       bordered
     >
       <template slot="requestCode" slot-scope="text, record">
-        <a @click="alertRequestCode(text, record)"> {{ text }} </a>
+        <a @click="alertRequestCode(record.key)"> {{ text }} </a>
       </template>
-      <template slot="operation" slot-scope="text">
-        <a @click="alertOperation(text)"> {{ text }} </a>
+      <template slot="operation" slot-scope="text, record">
+        <div
+          v-if="record.requestStatus === 'Chờ duyệt'"
+          style="display: flex; gap: 5px; white-space: nowrap"
+        >
+          <a @click="clickView">Xem</a><a @click="clickApprove">| Duyệt</a
+          ><a @click="clickRefuse">| Từ chối</a>
+        </div>
+        <div v-else style="display: flex; justify-content: center">
+          <a @click="clickView">Xem</a>
+        </div>
       </template>
     </a-table>
   </div>
 </template>
 
 <script>
-const columns = [
-  {
-    title: "STT",
-    dataIndex: "key",
-    key: "key",
-  },
-  {
-    title: "Mã yêu cầu",
-    dataIndex: "requestCode",
-    key: "requestCode",
-    scopedSlots: { customRender: "requestCode" },
-  },
-  {
-    title: "Loại yêu cầu",
-    dataIndex: "requestType",
-    key: "requestType",
-  },
-  {
-    title: "Dịch vụ",
-    dataIndex: "service",
-    key: "service",
-  },
-  {
-    title: "Loại giao dịch",
-    dataIndex: "transactionType",
-    key: "transactionType",
-  },
-  {
-    title: "Lĩnh vực kinh doanh",
-    dataIndex: "businessField",
-    key: "businessField",
-  },
-  {
-    title: "Người yêu cầu",
-    dataIndex: "requester",
-    key: "requester",
-  },
-  {
-    title: "Thời gian yêu cầu",
-    dataIndex: "requestTime",
-    key: "requestTime",
-  },
-  {
-    title: "Người duyệt",
-    dataIndex: "reviewer",
-    key: "reviewer",
-  },
-  {
-    title: "Thời gian duyệt",
-    dataIndex: "browsingTime",
-    key: "browsingTime",
-  },
-  {
-    title: "Trạng thái yêu cầu",
-    dataIndex: "requestStatus",
-    key: "requestStatus",
-  },
-  {
-    title: "Thao tác",
-    dataIndex: "operation",
-    key: "operation",
-    scopedSlots: { customRender: "operation" },
-  },
-];
-
-const data = [
-  {
-    key: "1",
-    requestCode: 404,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Chờ duyệt",
-    operation: "Duyệt ",
-  },
-  {
-    key: "2",
-    requestCode: 201,
-    requestType: "Cập nhập trạng thái giao dịch,hạch toán",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Từ chối",
-    operation: "Xem",
-  },
-  {
-    key: "3",
-    requestCode: 403,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Đã duyệt",
-    operation: "Xem ",
-  },
-  {
-    key: "4",
-    requestCode: 404,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Chờ duyệt",
-    operation: "Duyệt ",
-  },
-  {
-    key: "5",
-    requestCode: 303,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Chờ duyệt",
-    operation: "Duyệt ",
-  },
-  {
-    key: "6",
-    requestCode: 200,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Chờ duyệt",
-    operation: "Duyệt ",
-  },
-  {
-    key: "7",
-    requestCode: 401,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Chờ duyệt",
-    operation: "Duyệt ",
-  },
-  {
-    key: "8",
-    requestCode: 404,
-    requestType: "Insert giao dịch",
-    service: "Hỗ trợ thu hộ",
-    transactionType: "Thanh toán",
-    businessField: "Thanh toán qua QR",
-    requester: "Phan Thị Yến",
-    requestTime: "2014-12-24 23:12:00",
-    reviewer: "Phan Thị Yến",
-    browsingTime: "2014-12-26 23:12:00",
-    requestStatus: "Đã duyệt",
-    operation: "Xem",
-  },
-];
 export default {
   data() {
     return {
-      text: `A dog is a type of domesticated animal.Known for its loyalty and faithfulness,it can be found as a welcome guest in many households across the world.`,
       activeKey: ["1"],
-      data,
-      columns,
     };
   },
+
   methods: {
     onChange(date, dateString) {
       console.log(date, dateString);
     },
-    alertRequestCode(text, record) {
-      console.log("text", text);
-      console.log("record", record);
-      this.$router.push({ name: "RequestDetails" });
+    alertRequestCode(id) {
+      console.log("id", id);
+
+      this.$router.push({ name: "RequestDetails", params: { id } });
     },
     alertOperation(code) {
       alert(`Request Code: ${code} + 1`);
@@ -373,10 +203,28 @@ export default {
     handleChange(value) {
       console.log(`selected ${value}`);
     },
+    clickView() {
+      alert("đây là nút xem");
+    },
+    clickApprove() {
+      alert("đây là nút duyệt");
+    },
+    clickRefuse() {
+      alert("đây là nút từ chối");
+    },
   },
   watch: {
     activeKey(key) {
       console.log(key);
+    },
+  },
+
+  computed: {
+    dataColumns() {
+      return this.$store.getters.dataColumns;
+    },
+    colums() {
+      return this.$store.getters.colums;
     },
   },
 };
