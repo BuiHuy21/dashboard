@@ -1,3 +1,4 @@
+import CreateRequestPage from "@/views/CreateRequestPage.vue";
 import RequestDetails from "@/views/RequestDetails.vue";
 import RequirementList from "@/views/RequirementList.vue";
 import Vue from "vue";
@@ -15,6 +16,11 @@ const routes = [
     path: "/request-details/:id",
     name: "RequestDetails",
     component: RequestDetails,
+  },
+  {
+    path: "/create-request",
+    name: "CreateRequest",
+    component: CreateRequestPage,
   },
 ];
 
