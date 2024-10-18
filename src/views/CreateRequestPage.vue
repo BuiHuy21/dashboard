@@ -4,7 +4,7 @@
     <a-collapse v-model="activeKey">
       <a-collapse-panel key="2" header="Điều kiện tìm kiếm">
         <a-form :form="form" @submit="handleSubmit">
-          <a-row :gutter="32" style="margin-bottom: 20px">
+          <a-row :gutter="16" style="margin-bottom: 20px">
             <a-col :span="5">
               <a-form-item label="Loại yêu cầu">
                 <a-select
@@ -133,11 +133,12 @@
                 name="file"
                 :beforeUpload="beforeUpload"
                 @change="handleChangeUpload"
-                :multiple="true"
-                :headers="headers"
                 :showUploadList="false"
+                :disabled="isDisableSelectFile"
               >
-                <a-button type="primary"> Chọn file </a-button>
+                <a-button type="primary" :disabled="isDisableSelectFile">
+                  Chọn file
+                </a-button>
               </a-upload>
 
               <a-button style="margin-left: 20px" @click="handleReset">
@@ -145,10 +146,28 @@
               </a-button>
             </a-col>
             <a-col>
-              <a-button type="primary" :disabled="isDisable">
+              <a-button
+                type="primary"
+                :disabled="isDisabled || tableData.length === 0"
+                @click="chekcData"
+              >
                 Kiểm tra dữ liệu
               </a-button>
-              <a-button style="margin-left: 20px" :disabled="true">
+              <a-modal
+                v-model="visible"
+                okText="Xác nhận"
+                cancelText="Hủy"
+                title="Thông báo từ hệ thống"
+                @ok="handleOk"
+              >
+                <p>*Mật khẩu</p>
+                <a-input placeholder="Nhập mật khẩu" />
+              </a-modal>
+              <a-button
+                style="margin-left: 20px"
+                :disabled="tableData.length === 0"
+                @click="showModal"
+              >
                 Gửi yêu cầu
               </a-button>
             </a-col>
@@ -163,21 +182,60 @@
           background: white;
         "
       >
-        <template #title>
-          <span>Danh sách giao dịch</span>
-        </template>
-        <template v-if="hasSelected">
-          {{ `Đã chọn ${selectedRowKeys.length}/${tableData.length} bản ghi` }}
-        </template>
-        <a-table
-          :row-selection="{
-            selectedRowKeys: selectedRowKeys,
-            onChange: onSelectChange,
-          }"
-          :columns="columns"
-          :data-source="tableData"
-        >
-        </a-table>
+        <div v-if="tableData.length > 0" style="padding: 16px">
+          <h3>Danh sách giao dịch</h3>
+          <template v-if="hasSelected && !isListSelect">
+            <p>
+              Số bản ghi đã chọn: {{ selectedRowKeys.length }}/{{
+                tableData.length
+              }}
+            </p>
+          </template>
+          <template v-if="isListSelect">
+            <p>
+              Số bản ghi đã chọn: {{ selectedRowKeys.length }}/{{
+                tableData.length
+              }}
+            </p>
+            <p>
+              Số bản ghi hợp lệ: {{ selectedRowKeys.length }}/{{
+                tableData.length
+              }}
+            </p>
+            <p>
+              Số bản ghi không hợp lệ:
+              {{ tableData.length - selectedRowKeys.length }}/{{
+                tableData.length
+              }}
+            </p>
+            <a-col style="margin-bottom: 20px">
+              <a-select
+                style="width: 200px"
+                placeholder="-- Chọn trạng thái --"
+                @change="handleSelectChange"
+              >
+                <a-select-option value="d" disabled>
+                  -- Tất cả --
+                </a-select-option>
+                <a-select-option value="a"> Giao dịch được tạo</a-select-option>
+                <a-select-option value="b"> Giao dịch lỗi </a-select-option>
+              </a-select>
+              <a-button style="margin-left: 20px" type="primary">
+                Tải xuống
+              </a-button>
+            </a-col>
+          </template>
+
+          <a-table
+            :columns="columns"
+            :data-source="tableData"
+            :row-selection="{
+              selectedRowKeys: selectedRowKeys,
+              onChange: onSelectChange,
+            }"
+          >
+          </a-table>
+        </div>
       </a-page-header>
     </a-collapse>
   </div>
@@ -192,16 +250,16 @@ export default {
   data() {
     return {
       activeKey: ["2"],
-      headers: {
-        authorization: "authorization-text",
-      },
-      isDisable: true,
-      formLayout: "horizontal",
-      form: this.$form.createForm(this, { name: "coordinated" }),
+      visible: false,
+      visibleRefuse: false,
+      isDisabled: true,
+      isDisableSelectFile: true,
+      form: this.$form.createForm(this),
       tableData: [],
       columns: [],
-      selectedRowKeys: [], // Check here to configure the default column
+      selectedRowKeys: [],
       loading: false,
+      isListSelect: false,
     };
   },
   computed: {
@@ -209,10 +267,8 @@ export default {
       return this.selectedRowKeys.length > 0;
     },
   },
+
   methods: {
-    handleSelectChange(value) {
-      console.log(value);
-    },
     handleSubmit(e) {
       e.preventDefault();
       this.form.validateFields((err, values) => {
@@ -230,6 +286,7 @@ export default {
         }
       });
     },
+
     beforeUpload(file) {
       const isExel =
         file.type ===
@@ -237,12 +294,11 @@ export default {
       if (!isExel) {
         message.error("Vui lòng chọn dúng định dạng file exel");
         return false;
+      } else {
+        return true;
       }
-      return true;
     },
-    handleReset() {
-      this.form.resetFields();
-    },
+
     handleChangeUpload(info) {
       const file = info.file.originFileObj;
       if (file) {
@@ -253,10 +309,15 @@ export default {
             this.columns = headerRow.map((title, index) => ({
               title: title,
               dataIndex: index,
-              key: `${title}/${index}`,
+              key: title,
+              align: "center",
+              customRender: (text) => <p style="color:green">{text}</p>,
             }));
+            const sttColumnIndex = headerRow.findIndex((col) => col === "STT");
+
             this.tableData = rows
               .slice(headerRowIndex + 1)
+              .filter((row) => Number.isInteger(Number(row[sttColumnIndex])))
               .map((row, index) => {
                 const rowData = {};
                 row.forEach((cell, cellIndex) => {
@@ -265,22 +326,58 @@ export default {
                 rowData.id = index;
                 return rowData;
               });
+            this.isDisabled = false;
           })
           .catch((error) => {
             console.log("error", error);
           });
+        this.selectedRowKeys = this.tableData.map((item, index) => index);
       }
     },
+    chekcData() {
+      setTimeout(() => {
+        this.tableData = this.tableData.map((item, index) => ({
+          ...item,
+          status: index % 2 === 0 ? "Giao dịch đã được tạo" : "Giao dịch Lỗi",
+        }));
+        const newColumns = [...this.columns];
+        newColumns.splice(1, 0, {
+          title: "Trạng thái",
+          dataIndex: "status",
+          key: "status",
+        });
+        this.columns = newColumns;
+        this.isDisabled = true;
+        this.isDisableSelectFile = true;
+        this.selectedRowKeys = [];
+        this.isListSelect = true;
+      }, 1000);
+    },
+    showModal() {
+      this.visible = true;
+    },
+    handleOk() {
+      this.visible = false;
+    },
+    showModalRefuse() {
+      this.visibleRefuse = true;
+    },
+    handleOkRefuse() {
+      this.visibleRefuse = false;
+    },
+    handleSelectChange() {
+      this.isDisableSelectFile = false;
+    },
     onSelectChange(selectedRowKeys) {
-      console.log("selectedRowKeys changed: ", selectedRowKeys);
       this.selectedRowKeys = selectedRowKeys;
+    },
+    handleReset() {
+      this.form.resetFields();
+      this.tableData = [];
+      this.columns = [];
     },
   },
 };
 </script>
 
-<style>
-.requirement-list {
-  padding: 10px;
-}
-</style>
+<style></style>

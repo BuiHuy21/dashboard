@@ -147,7 +147,7 @@
         <span>Kết quả tìm kiếm</span>
       </template>
       <a-row type="flex" justify="space-between">
-        <a-col> Tổng số bản ghi: {{ data?.length }} </a-col>
+        <a-col> Tổng số bản ghi: {{ dataColumns?.length }} </a-col>
         <a-col>
           <a-button type="primary" icon="download"> Xuất exel </a-button>
         </a-col>
