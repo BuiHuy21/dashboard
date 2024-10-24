@@ -18,7 +18,7 @@ const routes = [
     component: RequestDetails,
   },
   {
-    path: "/create-request",
+    path: "/request",
     name: "CreateRequest",
     component: CreateRequestPage,
   },

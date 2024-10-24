@@ -20,7 +20,7 @@
     </a-page-header>
     <a-collapse v-model="activeKey">
       <a-collapse-panel key="1" header="Điều kiện tìm kiếm">
-        <a-row :gutter="32" style="margin-bottom: 20px">
+        <a-row :gutter="16" style="margin-bottom: 20px">
           <a-col :span="5">
             <p>Nhập mã yêu cầu</p>
             <a-input placeholder="Vui lòng nhập mã yêu cầu" />
@@ -79,7 +79,7 @@
             </a-select>
           </a-col>
         </a-row>
-        <a-row :gutter="32" style="margin-bottom: 20px">
+        <a-row :gutter="16" style="margin-bottom: 20px">
           <a-col :span="5">
             <p>Lĩnh vực kinh doanh</p>
             <a-select
@@ -169,11 +169,25 @@
           v-if="record.requestStatus === 'Chờ duyệt'"
           style="display: flex; gap: 5px; white-space: nowrap"
         >
-          <a @click="clickView">Xem</a><a @click="clickApprove">| Duyệt</a
-          ><a @click="clickRefuse">| Từ chối</a>
+          <a @click="clickView(record.key)">Xem</a>
+
+          <a @click="clickView(record.key)">| Duyệt</a>
+          <a-modal
+            v-model="visibleRefuse"
+            okText="Xác nhận"
+            cancelText="Hủy"
+            title="Thông báo từ hệ thống"
+            @ok="handleOkRefuse"
+          >
+            <p>*Lý do</p>
+            <a-input placeholder="Nhập lý do" />
+            <p>*Mật khẩu</p>
+            <a-input placeholder="Nhập mật khẩu" />
+          </a-modal>
+          <a @click="clickView(record.key)">| Từ chối</a>
         </div>
         <div v-else style="display: flex; justify-content: center">
-          <a @click="clickView">Xem</a>
+          <a @click="clickView(record.key)">Xem</a>
         </div>
       </template>
     </a-table>
@@ -203,8 +217,8 @@ export default {
     handleChange(value) {
       console.log(`selected ${value}`);
     },
-    clickView() {
-      alert("đây là nút xem");
+    clickView(id) {
+      this.$router.push({ name: "RequestDetails", params: { id } });
     },
     clickApprove() {
       alert("đây là nút duyệt");

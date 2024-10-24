@@ -620,3 +620,108 @@ export const dataTable = {
     },
   ],
 };
+
+export const dataColumns1 = (pagination) => [
+  {
+    title: "STT",
+    // dataIndex: "id",
+    // key: "id",
+    // align: "center",
+    customRender: (text, record, index) => {
+      return (pagination.current - 1) * pagination.pageSize + index + 1;
+    },
+  },
+  {
+    title: "Mã giao dịch core PPC",
+    dataIndex: "transactionCode",
+    key: "transactionCode",
+    align: "center",
+  },
+  {
+    title: "Số tiền giao dịch (đ)",
+    dataIndex: "transactionAmount",
+    key: "transactionAmount",
+    align: "center",
+  },
+  {
+    title: "Thời gian giao dịch",
+    dataIndex: "transactionTime",
+    key: "transactionTime",
+  },
+  {
+    title: "Trạng thái giao dịch",
+    dataIndex: "transactionStatus",
+    key: "transactionStatus",
+  },
+  {
+    title: "Trạng thái cập nhật",
+    dataIndex: "updatedStatus",
+    key: "updatedStatus",
+  },
+  {
+    title: "Lý do cập nhật",
+    dataIndex: "updateReason",
+    key: "updateReason",
+  },
+];
+export const dataColumns2 = (pagination) => [
+  {
+    title: "STT",
+    // dataIndex: "id",
+    // key: "id",
+    customRender: (text, record, index) => {
+      return (pagination.current - 1) * pagination.pageSize + index + 1;
+    },
+  },
+  {
+    title: "Mã tham chiếu",
+    dataIndex: "referenceCode",
+    key: "referenceCode",
+  },
+  {
+    title: "Số tiền giao dịch",
+    dataIndex: "transactionAmount",
+    key: "transactionAmount",
+    align: "right",
+  },
+  {
+    title: "Phí",
+    dataIndex: "fee",
+    key: "fee",
+  },
+  {
+    title: "Thuế",
+    dataIndex: "tax",
+    key: "tax",
+  },
+  {
+    title: "Mã giao dịch tại ngân hàng",
+    dataIndex: "transactionBank",
+    key: "transactionBank",
+  },
+  {
+    title: "Thời gian giao dịch",
+    dataIndex: "transactionTime",
+    key: "transactionTime",
+  },
+  {
+    title: "Mã giao dịch Napas",
+    dataIndex: "transactionNapas",
+    key: "transactionNapas",
+  },
+  {
+    title: "NapasTraceid",
+    dataIndex: "napasTraceid",
+    key: "napasTraceid",
+  },
+  {
+    title: "Tên tài khoản chuyển",
+    dataIndex: "name",
+    key: "name",
+  },
+  {
+    title: "Lý do",
+    dataIndex: "reason",
+    key: "reason",
+  },
+];

@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "referenceCode": "100005360",
+    "transactionAmount": 10000,
+    "fee": 100,
+    "tax": 100,
+    "transactionBank": "VA24100311041372",
+    "transactionTime": "03/10/2024 10:51:35",
+    "transactionNapas": "8eaeefb7-6e0d-4fb8-8549-f750d182af06",
+    "napasTraceid": "291345",
+    "name": "PHAN YEN",
+    "reason": "Bất đồng bộ giao dịch"
+  }
+]

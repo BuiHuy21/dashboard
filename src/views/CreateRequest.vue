@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="requirement-list" style="background: #f0f0f0">
     <bread-crum />
     <a-collapse v-model="activeKey">
@@ -217,18 +217,15 @@
             </p>
             <a-col style="margin-bottom: 20px">
               <a-select
-                v-model="selectedStatus"
                 style="width: 200px"
                 placeholder="-- Chọn trạng thái --"
                 @change="handleSelectChangeStatus"
               >
-                <a-select-option value=""> -- Tất cả -- </a-select-option>
-                <a-select-option value="Giao dịch đã tạo">
-                  Giao dịch đã tạo</a-select-option
-                >
-                <a-select-option value="Giao dịch lỗi">
-                  Giao dịch lỗi
+                <a-select-option value="d" disabled>
+                  -- Tất cả --
                 </a-select-option>
+                <a-select-option value="h"> Giao dịch được tạo</a-select-option>
+                <a-select-option value="k"> Giao dịch lỗi </a-select-option>
               </a-select>
               <a-button style="margin-left: 20px" type="primary">
                 Tải xuống
@@ -238,11 +235,13 @@
 
           <a-table
             :columns="columns"
-            :data-source="filteredData"
-            :row-selection="rowSelection"
+            :data-source="tableData"
+            :pagination="{ pageSize: 15 }"
+            :row-selection="{
+              selectedRowKeys: selectedRowKeys,
+              onChange: onSelectChange,
+            }"
             :row-key="(record) => record.id"
-            :pagination="pagination"
-            @change="handleTableChange"
           >
           </a-table>
         </div>
@@ -253,13 +252,11 @@
 
 <script>
 import breadCrum from "@/components/bread-crum.vue";
-import { dataColumns1, dataColumns2 } from "@/data";
 import readXlsxFile from "read-excel-file";
 export default {
   components: { breadCrum },
   data() {
     return {
-      selectedStatus: "",
       activeKey: ["2"],
       visible: false,
       visibleRefuse: false,
@@ -269,57 +266,20 @@ export default {
       form: this.$form.createForm(this),
       tableData: [],
       columns: [],
-      pagination: {
-        current: 1,
-        pageSize: 5,
-      },
       selectedRowKeys: [],
       fakeData: [],
       loading: false,
       isProcessing: false,
       isListSelect: false,
-      statusCheckEnabled: false,
-      isSelectAll: false,
     };
   },
   computed: {
     hasSelected() {
       return this.selectedRowKeys.length > 0;
     },
-    filteredData() {
-      if (this.selectedStatus === "") {
-        return this.tableData;
-      }
-      return this.tableData.filter((item) => {
-        return item.status === this.selectedStatus;
-      });
-    },
-    rowSelection() {
-      return {
-        selectedRowKeys: this.selectedRowKeys,
-        onChange: this.onSelectChange,
-        onSelectAll: this.onSelectAll,
-        getCheckboxProps: (record) => ({
-          props: {
-            disabled:
-              this.statusCheckEnabled && record.status !== "Giao dịch đã tạo",
-          },
-        }),
-      };
-    },
   },
 
   methods: {
-    handleTableChange(pagination) {
-      this.pagination = pagination;
-      const selectedValue = this.form.getFieldValue("requestType");
-
-      if (selectedValue?.includes("Insert giao dịch")) {
-        this.columns = dataColumns2(this.pagination);
-      } else if (selectedValue?.includes("Cập nhập trạng thái GD")) {
-        this.columns = dataColumns1(this.pagination);
-      }
-    },
     handleSubmit(e) {
       e.preventDefault();
       this.form.validateFields((err, values) => {
@@ -346,49 +306,37 @@ export default {
         }
       });
     },
-    onSelectAll(selected) {
-      if (selected) {
-        if (!this.isSelectAll) {
-          this.selectedRowKeys = this.tableData
-            .filter((item) => {
-              const props = this.rowSelection.getCheckboxProps(item);
-              return !props.props.disabled;
-            })
-            .map((item) => item.id);
 
-          this.isSelectAll = true;
-        }
-      } else {
-        this.selectedRowKeys = [];
-        this.isSelectAll = false;
-      }
-    },
     handleChangeUpload(info) {
       const file = info.file.originFileObj;
+
       if (!file) return;
+
+      if (this.isProcessing) return; // Ngăn gọi hàm nhiều lần
+      this.isProcessing = true;
+
       readXlsxFile(file)
         .then((rows) => {
           const selectedValue = this.form.getFieldValue("requestType");
+          let requiredConfirmationText = "";
 
           if (selectedValue?.includes("Insert giao dịch")) {
-            this.columns = dataColumns2(this.pagination);
+            requiredConfirmationText = "BIÊN BẢN XÁC NHẬN GIAO DỊCH CHÊNH LỆCH";
           } else if (selectedValue?.includes("Cập nhập trạng thái GD")) {
-            this.columns = dataColumns1(this.pagination);
+            requiredConfirmationText = "BIÊN BẢN XÁC NHẬN SAI LỆCH TRẠNG THÁI";
+          }
+
+          const hasRequiredText = rows?.some((row) =>
+            row?.some((cell) => cell?.includes(requiredConfirmationText))
+          );
+
+          if (!hasRequiredText) {
+            throw new Error("Không trùng cấu trúc với file mẫu");
           }
 
           const headerRowIndex = rows?.findIndex((row) => row?.includes("STT"));
-          const headerRow = rows[headerRowIndex].map((item) =>
-            this.cleanHeader(item)
-          );
+          const headerRow = rows[headerRowIndex];
 
-          const definedHeaders = this.columns.map((col) => col.title);
-
-          const isHeaderMatching =
-            JSON.stringify(definedHeaders) === JSON.stringify(headerRow);
-
-          if (!isHeaderMatching) {
-            throw new Error("Header trong file không khớp với định nghĩa.");
-          }
           const requiredColumn = headerRow
             .map((header, index) => (header?.includes("*") ? index : -1))
             .filter((index) => index !== -1);
@@ -413,94 +361,70 @@ export default {
 
           const sttColumnIndex = headerRow.findIndex((col) => col === "STT");
 
+          this.columns = headerRow.map((title, index) => ({
+            title: title,
+            dataIndex: index,
+            key: title,
+            align: "center",
+          }));
+
           this.tableData = rows
             .slice(headerRowIndex + 1)
-            .filter((row) => Number(row[sttColumnIndex]))
-            .map((row, index) => {
+            .filter((row) => Number(row[sttColumnIndex])) // Chỉ giữ các dòng có số trong cột STT
+            .map((row) => {
               const rowData = {};
-
-              if (selectedValue?.includes("Insert giao dịch")) {
-                rowData.id = index + 1;
-                rowData.referenceCode = row[1];
-                rowData.transactionAmount = row[2];
-                rowData.fee = row[3];
-                rowData.tax = row[4];
-                rowData.transactionBank = row[5];
-                rowData.transactionTime = row[6];
-                rowData.transactionNapas = row[7];
-                rowData.napasTraceid = row[8];
-                rowData.name = row[9];
-                rowData.reason = row[10];
-              } else if (selectedValue?.includes("Cập nhập trạng thái GD")) {
-                rowData.id = index + 1;
-                rowData.transactionCode = row[1];
-                rowData.transactionAmount = row[2];
-                rowData.transactionTime = row[3];
-                rowData.transactionStatus = row[4];
-                rowData.updatedStatus = row[5];
-                rowData.updateReason = row[6];
-              }
-
+              row.forEach((cell, cellIndex) => {
+                rowData[cellIndex] = cell;
+              });
+              rowData.id = row[sttColumnIndex];
               return rowData;
             });
+
           this.isDisableSelectFile = true;
+          this.isProcessing = false;
           this.isDisabled = false;
           this.selectedRowKeys = this.tableData.map((item) => item.id);
         })
-        .catch((err) => {
+        .catch(() => {
           this.$notification.open({
             message: "Lỗi",
-            description: err?.message,
+            description:
+              "Dữ liệu trong file không hợp lệ,không tồn tại bản ghi, thiếu trường thông tin bắt buộc, không đúng định dạng",
           });
+          this.isProcessing = false;
         });
-    },
-    cleanHeader(header) {
-      return header.replace(/\(\*\)|\*/g, "").trim();
     },
     checkData() {
-      this.statusCheckEnabled = true;
-      let url = "";
-      const selectedValue = this.form.getFieldValue("requestType");
-      if (selectedValue?.includes("Insert giao dịch")) {
-        url = "/data2.json";
-      } else if (selectedValue?.includes("Cập nhập trạng thái GD")) {
-        url = "/data.json";
-      }
-      fetch(url)
-        .then((response) => response.json())
-        .then((data) => {
-          this.tableData = data.map((row, index) => ({
-            ...row,
-            id: index + 1,
-            status: index % 2 == 0 ? "Giao dịch đã tạo" : "Giao dịch lỗi", // Thêm cột "status" với giá trị mặc định
-          }));
+      // Bổ sung cột 'Trạng thái' nếu chưa có
+      const newColumns = [...this.columns];
+      const statusColumnExists = newColumns.some((col) => col.key === "status");
 
-          const newColumns = [...this.columns];
-          const statusColumnExists = newColumns.some(
-            (col) => col.key === "status"
-          );
-
-          if (!statusColumnExists) {
-            newColumns.splice(1, 0, {
-              title: "Trạng thái",
-              dataIndex: "status",
-              key: "status",
-              align: "center",
-            });
-          }
-
-          this.columns = newColumns;
-          this.isListSelect = true;
-          this.updateSelectedKeys();
-        })
-        .catch((error) => {
-          console.error("Error loading fake data:", error);
+      if (!statusColumnExists) {
+        newColumns.push({
+          title: "Trạng thái",
+          dataIndex: "status",
+          key: "status",
+          align: "center",
         });
-    },
-    updateSelectedKeys() {
-      this.selectedRowKeys = this.tableData
-        .filter((item) => item.status === "Giao dịch đã tạo")
-        .map((item) => item.id);
+      }
+
+      // So sánh mã tham chiếu giữa bảng upload và dữ liệu fake
+      this.tableData = this.tableData.map((row) => {
+        const matchedFakeData = this.fakeData.find(
+          (fake) => fake.refCode === row[1] // Giả sử mã tham chiếu là cột 1
+        );
+
+        // Thêm trạng thái từ dữ liệu fake vào bảng
+        return {
+          ...row,
+          status: matchedFakeData
+            ? matchedFakeData.status
+            : "Không tìm thấy mã tham chiếu",
+        };
+      });
+
+      // Cập nhật lại bảng với cột mới
+      this.columns = newColumns;
     },
     showModal() {
       this.visible = true;
@@ -517,17 +441,13 @@ export default {
     handleSelectChange() {
       this.isDisableSelectFile = false;
     },
-    handleSelectChangeStatus(value) {
-      this.selectedStatus = value;
-    },
+    handleSelectChangeStatus() {},
     onSelectChange(selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys;
     },
     handleReset() {
       this.form.resetFields();
-      this.isSelectAll = false;
       this.isDisableSelectFile = false;
-      this.statusCheckEnabled = false;
       this.tableData = [];
       this.columns = [];
       this.isProcessing = false;
@@ -536,4 +456,4 @@ export default {
 };
 </script>
 
-<style></style>
+<style></style> -->
