@@ -626,7 +626,7 @@ export const dataColumns1 = (pagination) => [
     title: "STT",
     // dataIndex: "id",
     // key: "id",
-    // align: "center",
+    align: "center",
     customRender: (text, record, index) => {
       return (pagination.current - 1) * pagination.pageSize + index + 1;
     },
@@ -641,27 +641,31 @@ export const dataColumns1 = (pagination) => [
     title: "Số tiền giao dịch (đ)",
     dataIndex: "transactionAmount",
     key: "transactionAmount",
-    align: "center",
+    align: "right",
   },
   {
     title: "Thời gian giao dịch",
     dataIndex: "transactionTime",
     key: "transactionTime",
+    align: "center",
   },
   {
     title: "Trạng thái giao dịch",
     dataIndex: "transactionStatus",
     key: "transactionStatus",
+    align: "center",
   },
   {
     title: "Trạng thái cập nhật",
     dataIndex: "updatedStatus",
     key: "updatedStatus",
+    align: "center",
   },
   {
     title: "Lý do cập nhật",
     dataIndex: "updateReason",
     key: "updateReason",
+    align: "center",
   },
 ];
 export const dataColumns2 = (pagination) => [
@@ -669,6 +673,7 @@ export const dataColumns2 = (pagination) => [
     title: "STT",
     // dataIndex: "id",
     // key: "id",
+    align: "center",
     customRender: (text, record, index) => {
       return (pagination.current - 1) * pagination.pageSize + index + 1;
     },
@@ -677,6 +682,7 @@ export const dataColumns2 = (pagination) => [
     title: "Mã tham chiếu",
     dataIndex: "referenceCode",
     key: "referenceCode",
+    align: "center",
   },
   {
     title: "Số tiền giao dịch",
@@ -688,40 +694,48 @@ export const dataColumns2 = (pagination) => [
     title: "Phí",
     dataIndex: "fee",
     key: "fee",
+    align: "center",
   },
   {
     title: "Thuế",
     dataIndex: "tax",
     key: "tax",
+    align: "center",
   },
   {
     title: "Mã giao dịch tại ngân hàng",
     dataIndex: "transactionBank",
     key: "transactionBank",
+    align: "center",
   },
   {
     title: "Thời gian giao dịch",
     dataIndex: "transactionTime",
     key: "transactionTime",
+    align: "center",
   },
   {
     title: "Mã giao dịch Napas",
     dataIndex: "transactionNapas",
     key: "transactionNapas",
+    align: "center",
   },
   {
     title: "NapasTraceid",
     dataIndex: "napasTraceid",
     key: "napasTraceid",
+    align: "center",
   },
   {
     title: "Tên tài khoản chuyển",
     dataIndex: "name",
     key: "name",
+    align: "center",
   },
   {
     title: "Lý do",
     dataIndex: "reason",
     key: "reason",
+    align: "center",
   },
 ];

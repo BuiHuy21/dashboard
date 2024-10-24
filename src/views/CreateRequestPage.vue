@@ -189,30 +189,30 @@
           background: white;
         "
       >
-        <div v-if="tableData.length > 0" style="padding: 16px">
+        <div v-if="filteredData.length > 0" style="padding: 16px">
           <h3>Danh sách giao dịch</h3>
           <template v-if="hasSelected && !isListSelect">
             <p>
               Số bản ghi đã chọn: {{ selectedRowKeys.length }}/{{
-                tableData.length
+                filteredData.length
               }}
             </p>
           </template>
           <template v-if="isListSelect">
             <p>
               Số bản ghi đã chọn: {{ selectedRowKeys.length }}/{{
-                tableData.length
+                filteredData.length
               }}
             </p>
             <p>
               Số bản ghi hợp lệ: {{ selectedRowKeys.length }}/{{
-                tableData.length
+                filteredData.length
               }}
             </p>
             <p>
               Số bản ghi không hợp lệ:
-              {{ tableData.length - selectedRowKeys.length }}/{{
-                tableData.length
+              {{ filteredData.length - selectedRowKeys.length }}/{{
+                filteredData.length
               }}
             </p>
             <a-col style="margin-bottom: 20px">
@@ -237,6 +237,7 @@
           </template>
 
           <a-table
+            bordered
             :columns="columns"
             :data-source="filteredData"
             :row-selection="rowSelection"
@@ -274,9 +275,6 @@ export default {
         pageSize: 5,
       },
       selectedRowKeys: [],
-      fakeData: [],
-      loading: false,
-      isProcessing: false,
       isListSelect: false,
       statusCheckEnabled: false,
       isSelectAll: false,
@@ -454,6 +452,7 @@ export default {
           });
         });
     },
+
     cleanHeader(header) {
       return header.replace(/\(\*\)|\*/g, "").trim();
     },
@@ -469,6 +468,8 @@ export default {
       fetch(url)
         .then((response) => response.json())
         .then((data) => {
+          this.isListSelect = false;
+
           this.tableData = data.map((row, index) => ({
             ...row,
             id: index + 1,
@@ -519,6 +520,19 @@ export default {
     },
     handleSelectChangeStatus(value) {
       this.selectedStatus = value;
+      // let dataFilter = this.tableData;
+      // if (this.selectedStatus !== "") {
+      //   dataFilter = this.tableData.filter(
+      //     (item) => item.status === this.selectedStatus
+      //   );
+      // }
+
+      // this.selectedRowKeys = dataFilter
+      //   .filter((item) => {
+      //     const props = this.rowSelection.getCheckboxProps(item);
+      //     return !props.props.disabled;
+      //   })
+      //   .map((item) => item.id);
     },
     onSelectChange(selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys;
@@ -530,7 +544,6 @@ export default {
       this.statusCheckEnabled = false;
       this.tableData = [];
       this.columns = [];
-      this.isProcessing = false;
     },
   },
 };
