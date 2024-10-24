@@ -520,19 +520,19 @@ export default {
     },
     handleSelectChangeStatus(value) {
       this.selectedStatus = value;
-      // let dataFilter = this.tableData;
-      // if (this.selectedStatus !== "") {
-      //   dataFilter = this.tableData.filter(
-      //     (item) => item.status === this.selectedStatus
-      //   );
-      // }
+      let dataFilter = this.tableData;
+      if (this.selectedStatus !== "") {
+        dataFilter = this.tableData.filter(
+          (item) => item.status === this.selectedStatus
+        );
+      }
 
-      // this.selectedRowKeys = dataFilter
-      //   .filter((item) => {
-      //     const props = this.rowSelection.getCheckboxProps(item);
-      //     return !props.props.disabled;
-      //   })
-      //   .map((item) => item.id);
+      this.selectedRowKeys = dataFilter
+        .filter((item) => {
+          const props = this.rowSelection.getCheckboxProps(item);
+          return !props.props.disabled;
+        })
+        .map((item) => item.id);
     },
     onSelectChange(selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys;
@@ -544,6 +544,7 @@ export default {
       this.statusCheckEnabled = false;
       this.tableData = [];
       this.columns = [];
+      this.selectedStatus = "";
     },
   },
 };
